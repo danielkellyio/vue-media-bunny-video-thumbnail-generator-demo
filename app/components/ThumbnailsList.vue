@@ -19,7 +19,7 @@ defineProps<{
         }}
       </p>
     </template>
-    <div class="overflow-y-auto flex-1">
+    <div class="overflow-y-auto max-h-[calc(100vh-8rem)] h-full flex-1">
       <div class="p-6">
         <div v-if="thumbnails.length > 0" class="flex-col flex gap-4">
           <ThumbnailCard

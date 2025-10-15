@@ -35,7 +35,7 @@ const generatedThumbnails = ref<Array<ThumbnailGeneratedData>>([]);
             <UCard class="overflow-hidden">
               <template #header>
                 <h2 class="text-lg font-semibold">
-                  Video Thumbnail Generator Demo
+                  Video Thumbnail Generator with Media Bunny
                 </h2>
               </template>
               <!-- Video Player Section -->

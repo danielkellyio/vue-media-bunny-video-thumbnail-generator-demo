@@ -120,32 +120,10 @@ export function useVideoThumbnail(
       }
     };
 
-  // Watch for video element and metadata changes
-  watch(
-    videoElement,
-    (newElement) => {
-      if (newElement && newElement.readyState >= 1) {
-        initializeMediaBunny();
-      } else if (newElement) {
-        // Wait for metadata to load
-        const handleMetadata = () => {
-          initializeMediaBunny();
-          newElement.removeEventListener("loadedmetadata", handleMetadata);
-        };
-        newElement.addEventListener("loadedmetadata", handleMetadata);
-      }
-    },
-    { immediate: true }
-  );
-
-  // Watch for video dimensions changes to re-initialize sink
-  watch([videoWidth, videoHeight], () => {
-    if (videoTrack.value && videoWidth.value && videoHeight.value) {
-      sink.value = new CanvasSink(videoTrack.value, {
-        width: videoWidth.value,
-      });
-    }
-  });
+  // Watch for the video source  to change and re-initialize Media Bunny
+  useEventListener(videoElement, "loadedmetadata", initializeMediaBunny);
+  // if the video element is already loaded, initialize Media Bunny immediately
+  if (videoElement.value) initializeMediaBunny();
 
   // Cleanup on unmount
   onUnmounted(() => {
