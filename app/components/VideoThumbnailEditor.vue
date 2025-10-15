@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, watch, computed } from "vue";
-import { Input, ALL_FORMATS, BlobSource, CanvasSink } from "mediabunny";
+import { ref, toRef } from "vue";
+import { useVideoThumbnail, type ThumbnailGeneratedData } from "../composables/useVideoThumbnail";
 
 interface Props {
   videoSource: File | Blob | string;
@@ -11,14 +11,7 @@ interface Props {
 }
 
 interface Emits {
-  (
-    e: "thumbnail-generated",
-    data: {
-      canvas: HTMLCanvasElement;
-      timestamp: number;
-      dataUrl: string;
-    }
-  ): void;
+  (e: "thumbnail-generated", data: ThumbnailGeneratedData): void;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -27,137 +20,30 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>();
 
-// Reactive state
+// Canvas ref
 const canvasRef = ref<HTMLCanvasElement>();
-const isProcessing = ref(false);
-const videoTrack = ref<any>(null);
-const sink = ref<CanvasSink | null>(null);
 
-// Computed thumbnail dimensions based on video aspect ratio
-const thumbnailWidth = computed(() => {
-  if (!props.videoWidth || !props.videoHeight) return props.maxThumbnailWidth;
-
-  // If video width is already smaller than max, use original dimensions
-  if (props.videoWidth <= props.maxThumbnailWidth) {
-    return props.videoWidth;
-  }
-
-  // Scale down to max width while maintaining aspect ratio
-  return props.maxThumbnailWidth;
+// Use the video thumbnail composable
+const { isProcessing, sink, generateThumbnail: generateThumbnailFromComposable } = useVideoThumbnail({
+  videoSource: toRef(() => props.videoSource),
+  currentTime: toRef(() => props.currentTime),
+  videoWidth: toRef(() => props.videoWidth),
+  videoHeight: toRef(() => props.videoHeight),
+  maxThumbnailWidth: props.maxThumbnailWidth,
 });
 
-const thumbnailHeight = computed(() => {
-  if (!props.videoWidth || !props.videoHeight)
-    return Math.round(props.maxThumbnailWidth * 0.75);
-
-  const aspectRatio = props.videoHeight / props.videoWidth;
-  return Math.round(thumbnailWidth.value * aspectRatio);
-});
-
-// Initialize Media Bunny
-const initializeMediaBunny = async () => {
-  if (!props.videoSource) return;
-
-  try {
-    isProcessing.value = true;
-
-    // Handle string URLs by creating a blob from fetch
-    let sourceBlob: Blob;
-    if (typeof props.videoSource === "string") {
-      const response = await fetch(props.videoSource);
-      sourceBlob = await response.blob();
-    } else {
-      sourceBlob = props.videoSource;
-    }
-
-    const input = new Input({
-      formats: ALL_FORMATS,
-      source: new BlobSource(sourceBlob),
-    });
-
-    const track = await input.getPrimaryVideoTrack();
-    if (!track) {
-      throw new Error("No video track found");
-    }
-
-    const decodable = await track.canDecode();
-    if (!decodable) {
-      throw new Error("Video track cannot be decoded");
-    }
-
-    videoTrack.value = track;
-
-    // Initialize sink with correct dimensions
-    if (props.videoWidth && props.videoHeight) {
-      sink.value = new CanvasSink(track, {
-        width: thumbnailWidth.value,
-      });
-    }
-  } catch (error) {
-    console.error("Error initializing Media Bunny:", error);
-  } finally {
-    isProcessing.value = false;
-  }
-};
-
-// Generate thumbnail at current time
+// Wrapper function to handle canvas ref and emit event
 const generateThumbnail = async () => {
-  if (!sink.value || !canvasRef.value) {
-    throw new Error(
-      "Attempting to generate thumbnail with sink or canvas not found"
-    );
+  if (!canvasRef.value) {
+    throw new Error("Canvas ref not found");
   }
 
-  try {
-    isProcessing.value = true;
-
-    const result = await sink.value.getCanvas(props.currentTime);
-
-    if (!result) {
-      throw new Error("Failed to generate thumbnail");
-    }
-
-    // Draw to our canvas element
-    const ctx = canvasRef.value.getContext("2d");
-    if (!ctx) return;
-
-    canvasRef.value.width = thumbnailWidth.value;
-    canvasRef.value.height = thumbnailHeight.value;
-    ctx.drawImage(result.canvas, 0, 0);
-
-    // Emit the thumbnail data
-    emit("thumbnail-generated", {
-      canvas: canvasRef.value,
-      timestamp: result.timestamp,
-      dataUrl: canvasRef.value.toDataURL("image/png"),
-    });
-  } catch (error) {
-    console.error("Error generating thumbnail:", error);
-  } finally {
-    isProcessing.value = false;
+  const result = await generateThumbnailFromComposable(canvasRef.value);
+  
+  if (result) {
+    emit("thumbnail-generated", result);
   }
 };
-
-// Watch for video dimensions changes to re-initialize sink
-watch(
-  () => [props.videoWidth, props.videoHeight],
-  () => {
-    if (videoTrack.value && props.videoWidth && props.videoHeight) {
-      sink.value = new CanvasSink(videoTrack.value, {
-        width: thumbnailWidth.value,
-      });
-    }
-  }
-);
-
-// Initialize on mount
-watch(
-  () => props.videoSource,
-  () => {
-    initializeMediaBunny();
-  },
-  { immediate: true }
-);
 
 defineExpose({
   generateThumbnail,

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, defineAsyncComponent } from "vue";
 import { useMediaControls } from "@vueuse/core";
+import type { ThumbnailGeneratedData } from "../composables/useVideoThumbnail";
 
 interface Props {
   videoSource: File | Blob | string;
@@ -8,14 +9,7 @@ interface Props {
 }
 
 interface Emits {
-  (
-    e: "thumbnail-generated",
-    data: {
-      canvas: HTMLCanvasElement;
-      timestamp: number;
-      dataUrl: string;
-    }
-  ): void;
+  (e: "thumbnail-generated", data: ThumbnailGeneratedData): void;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -65,20 +59,14 @@ const initializeVideo = async () => {
 };
 
 // Handle thumbnail generation from child component
-const handleThumbnailGenerated = (data: {
-  canvas: HTMLCanvasElement;
-  timestamp: number;
-  dataUrl: string;
-}) => {
+const handleThumbnailGenerated = (data: ThumbnailGeneratedData) => {
   emit("thumbnail-generated", data);
 };
 
 // Watch for video source changes
 watch(
   () => props.videoSource,
-  () => {
-    initializeVideo();
-  },
+  initializeVideo,
   { immediate: true }
 );
 </script>
