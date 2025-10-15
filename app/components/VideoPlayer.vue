@@ -13,7 +13,6 @@ interface Emits {
     data: {
       canvas: HTMLCanvasElement;
       timestamp: number;
-      duration: number;
       dataUrl: string;
     }
   ): void;
@@ -69,7 +68,6 @@ const initializeVideo = async () => {
 const handleThumbnailGenerated = (data: {
   canvas: HTMLCanvasElement;
   timestamp: number;
-  duration: number;
   dataUrl: string;
 }) => {
   emit("thumbnail-generated", data);
@@ -86,11 +84,11 @@ watch(
 </script>
 
 <template>
-  <div class="video-player">
-    <div class="video-container">
+  <div class="max-w-full mx-auto">
+    <div class="relative bg-black rounded-lg overflow-hidden shadow-lg">
       <video
         ref="videoRef"
-        class="video-player-element"
+        class="w-full h-auto block"
         controls
         preload="metadata"
         @loadedmetadata="onVideoMetadataLoaded"
@@ -109,25 +107,3 @@ watch(
     </div>
   </div>
 </template>
-
-<style scoped>
-.video-player {
-  max-width: 100%;
-  margin: 0 auto;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-
-.video-container {
-  position: relative;
-  background: #000;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-}
-
-.video-player-element {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-</style>

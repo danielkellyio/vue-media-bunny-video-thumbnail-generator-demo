@@ -166,86 +166,19 @@ defineExpose({
 </script>
 
 <template>
-  <div class="video-thumbnail-editor">
+  <div class="absolute top-0 right-0 p-2.5 z-10">
     <canvas ref="canvasRef" style="display: none" />
 
-    <button
+    <UButton
       @click="generateThumbnail"
-      class="generate-btn"
       :disabled="isProcessing || !sink"
-      :class="{ processing: isProcessing }"
+      :loading="isProcessing"
+      size="lg"
+      :icon="isProcessing ? 'i-heroicons-clock' : 'i-heroicons-camera'"
+      color="neutral"
+      class="backdrop-blur-md shadow-lg rounded-xl"
     >
-      <span v-if="isProcessing" class="icon">⏳</span>
-      <span v-else class="icon">📸</span>
-      <span class="text">{{ isProcessing ? "Generating..." : "Capture" }}</span>
-    </button>
+      {{ isProcessing ? "Generating..." : "Capture" }}
+    </UButton>
   </div>
 </template>
-
-<style scoped>
-.video-thumbnail-editor {
-  position: absolute;
-  top: 0;
-  right: 0;
-  padding: 10px;
-}
-
-.generate-btn {
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(10px);
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  padding: 12px 20px;
-  border-radius: 12px;
-  cursor: pointer;
-  font-size: 15px;
-  font-weight: 600;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  z-index: 10;
-}
-
-.generate-btn:hover:not(:disabled) {
-  background: rgba(0, 0, 0, 0.85);
-  border-color: rgba(255, 255, 255, 0.3);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-}
-
-.generate-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.generate-btn.processing {
-  background: rgba(37, 99, 235, 0.75);
-  border-color: rgba(147, 197, 253, 0.3);
-}
-
-.generate-btn .icon {
-  font-size: 18px;
-  line-height: 1;
-}
-
-.generate-btn .text {
-  line-height: 1;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-.processing .icon {
-  animation: pulse 1.5s ease-in-out infinite;
-}
-</style>
