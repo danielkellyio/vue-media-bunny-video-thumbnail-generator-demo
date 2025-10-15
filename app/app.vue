@@ -1,16 +1,11 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import VideoPlayer from "./components/VideoPlayer.vue";
+import VideoPlayerEditor from "./components/VideoPlayerEditor.vue";
+import type { ThumbnailGeneratedData } from "./types";
 
 const selectedFile = ref<File | null>(null);
 const fileInputRef = ref<HTMLInputElement>();
-const generatedThumbnails = ref<
-  Array<{
-    canvas: HTMLCanvasElement;
-    timestamp: number;
-    dataUrl: string;
-  }>
->([]);
+const generatedThumbnails = ref<Array<ThumbnailGeneratedData>>([]);
 
 const handleFileSelect = (event: Event) => {
   const target = event.target as HTMLInputElement;
@@ -24,11 +19,7 @@ const triggerFileInput = () => {
   fileInputRef.value?.click();
 };
 
-const handleThumbnailGenerated = (data: {
-  canvas: HTMLCanvasElement;
-  timestamp: number;
-  dataUrl: string;
-}) => {
+const handleThumbnailGenerated = (data: ThumbnailGeneratedData) => {
   generatedThumbnails.value.push(data);
   console.log("Thumbnail generated:", data);
 };
@@ -84,7 +75,7 @@ const downloadThumbnail = (dataUrl: string, timestamp: number) => {
 
           <!-- Video Player Section -->
           <div v-if="selectedFile" class="py-6">
-            <VideoPlayer
+            <VideoPlayerEditor
               :video-source="selectedFile"
               :edit-mode="true"
               @thumbnail-generated="handleThumbnailGenerated"

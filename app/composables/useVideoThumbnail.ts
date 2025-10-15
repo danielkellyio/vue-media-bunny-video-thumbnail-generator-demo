@@ -1,19 +1,6 @@
-import { ref, watch, computed, type Ref } from "vue";
+import { ref, watch, computed } from "vue";
 import { Input, ALL_FORMATS, BlobSource, CanvasSink } from "mediabunny";
-
-export interface UseVideoThumbnailOptions {
-  videoSource: Ref<File | Blob | string | null | undefined>;
-  currentTime: Ref<number>;
-  videoWidth: Ref<number>;
-  videoHeight: Ref<number>;
-  maxThumbnailWidth?: number;
-}
-
-export interface ThumbnailGeneratedData {
-  canvas: HTMLCanvasElement;
-  timestamp: number;
-  dataUrl: string;
-}
+import type { UseVideoThumbnailOptions, ThumbnailGeneratedData } from "../types";
 
 export function useVideoThumbnail(options: UseVideoThumbnailOptions) {
   const {
@@ -28,6 +15,7 @@ export function useVideoThumbnail(options: UseVideoThumbnailOptions) {
   const isProcessing = ref(false);
   const videoTrack = ref<any>(null);
   const sink = ref<CanvasSink | null>(null);
+  const canvas = document.createElement('canvas');
 
   // Computed thumbnail dimensions based on video aspect ratio
   const thumbnailWidth = computed(() => {
@@ -97,12 +85,10 @@ export function useVideoThumbnail(options: UseVideoThumbnailOptions) {
   };
 
   // Generate thumbnail at current time
-  const generateThumbnail = async (
-    canvas: HTMLCanvasElement
-  ): Promise<ThumbnailGeneratedData | null> => {
-    if (!sink.value || !canvas) {
+  const generateThumbnail = async (): Promise<ThumbnailGeneratedData | null> => {
+    if (!sink.value) {
       throw new Error(
-        "Attempting to generate thumbnail with sink or canvas not found"
+        "Attempting to generate thumbnail with sink not found"
       );
     }
 
@@ -115,7 +101,7 @@ export function useVideoThumbnail(options: UseVideoThumbnailOptions) {
         throw new Error("Failed to generate thumbnail");
       }
 
-      // Draw to the provided canvas element
+      // Draw to the internal canvas element
       const ctx = canvas.getContext("2d");
       if (!ctx) return null;
 

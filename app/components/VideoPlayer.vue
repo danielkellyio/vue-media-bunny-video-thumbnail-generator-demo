@@ -1,33 +1,14 @@
 <script setup lang="ts">
-import { ref, watch, defineAsyncComponent } from "vue";
+import { ref, watch } from "vue";
 import { useMediaControls } from "@vueuse/core";
-import type { ThumbnailGeneratedData } from "../composables/useVideoThumbnail";
+import type { VideoPlayerProps, VideoPlayerEmits } from "../types";
 
-interface Props {
-  videoSource: File | Blob | string;
-  editMode?: boolean;
-}
-
-interface Emits {
-  (e: "thumbnail-generated", data: ThumbnailGeneratedData): void;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  editMode: false,
-});
-
-const emit = defineEmits<Emits>();
+const props = defineProps<VideoPlayerProps>();
+const emit = defineEmits<VideoPlayerEmits>();
 
 // Reactive state
 const videoRef = useTemplateRef<HTMLVideoElement>("videoRef");
 const videoUrl = ref<string>("");
-const videoWidth = ref(0);
-const videoHeight = ref(0);
-
-// Lazy load the thumbnail editor component
-const VideoThumbnailEditor = defineAsyncComponent(
-  () => import("./VideoThumbnailEditor.vue")
-);
 
 // Use VueUse media controls
 const { currentTime } = useMediaControls(videoRef, {
@@ -37,8 +18,10 @@ const { currentTime } = useMediaControls(videoRef, {
 // Handle video metadata loaded to get actual dimensions
 const onVideoMetadataLoaded = () => {
   if (videoRef.value) {
-    videoWidth.value = videoRef.value.videoWidth;
-    videoHeight.value = videoRef.value.videoHeight;
+    emit("metadata-loaded", {
+      videoWidth: videoRef.value.videoWidth,
+      videoHeight: videoRef.value.videoHeight,
+    });
   }
 };
 
@@ -58,17 +41,17 @@ const initializeVideo = async () => {
   }
 };
 
-// Handle thumbnail generation from child component
-const handleThumbnailGenerated = (data: ThumbnailGeneratedData) => {
-  emit("thumbnail-generated", data);
-};
-
 // Watch for video source changes
 watch(
   () => props.videoSource,
   initializeVideo,
   { immediate: true }
 );
+
+// Expose currentTime for parent components that need it
+defineExpose({
+  currentTime,
+});
 </script>
 
 <template>
@@ -81,17 +64,6 @@ watch(
         preload="metadata"
         @loadedmetadata="onVideoMetadataLoaded"
       />
-
-      <!-- Lazy-loaded thumbnail editor overlay when in edit mode -->
-      <Suspense v-if="editMode">
-        <VideoThumbnailEditor
-          :video-source="videoSource"
-          :current-time="currentTime"
-          :video-width="videoWidth"
-          :video-height="videoHeight"
-          @thumbnail-generated="handleThumbnailGenerated"
-        />
-      </Suspense>
     </div>
   </div>
 </template>

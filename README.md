@@ -38,11 +38,11 @@ pnpm dev
 
 ## Component Architecture
 
-The application uses a modular architecture with two main components:
+The application uses a modular architecture with three main components:
 
-### `VideoPlayer.vue` - Main Component
+### `VideoPlayerEditor.vue` - Orchestrator Component
 
-A lightweight video player wrapper that handles video playback and conditionally loads the thumbnail editor.
+A lightweight orchestrator that conditionally renders either VideoPlayer or VideoEditor based on `editMode`.
 
 **Props:**
 
@@ -53,13 +53,26 @@ A lightweight video player wrapper that handles video playback and conditionally
 
 - `thumbnail-generated`: Emitted when a thumbnail is generated (only in edit mode)
 
-### `VideoThumbnailEditor.vue` - Lazy-Loaded Editor
+### `VideoPlayer.vue` - Streamlined Player
 
-A separate component that handles Media Bunny integration and thumbnail generation. This component is only loaded when `editMode` is enabled, keeping the base video player lightweight.
+A clean, minimal video player for end-user watching without any editing features.
+
+**Props:**
+
+- `videoSource` (required): File, Blob, or string URL
+
+**Events:**
+
+- `metadata-loaded`: Emits video dimensions when metadata loads
+
+### `VideoEditor.vue` - Full Editor Component
+
+Combines VideoPlayer with thumbnail generation capabilities. Uses VideoPlayer as its base and adds a capture overlay.
 
 **Features:**
 
-- Lazy loads Media Bunny on demand
+- Reuses VideoPlayer component for video display
+- Integrates Media Bunny for thumbnail generation
 - Floating overlay button with glassmorphism design
 - Automatic aspect ratio calculation
 - Positioned in top-right corner of video
@@ -72,23 +85,23 @@ Use as a simple video player without any Media Bunny overhead:
 
 ```vue
 <script setup lang="ts">
-import VideoPlayer from "./components/VideoPlayer.vue";
+import VideoPlayerEditor from "./components/VideoPlayerEditor.vue";
 
 const videoFile = ref<File | null>(null);
 </script>
 
 <template>
-  <VideoPlayer :video-source="videoFile" />
+  <VideoPlayerEditor :video-source="videoFile" />
 </template>
 ```
 
 ### Video Player with Thumbnail Extraction
 
-Enable edit mode to lazy-load the thumbnail editor:
+Enable edit mode to load the VideoEditor component:
 
 ```vue
 <script setup lang="ts">
-import VideoPlayer from "./components/VideoPlayer.vue";
+import VideoPlayerEditor from "./components/VideoPlayerEditor.vue";
 
 const videoFile = ref<File | null>(null);
 
@@ -96,13 +109,12 @@ const handleThumbnailGenerated = (data) => {
   console.log("Thumbnail generated:", data);
   // data.canvas - HTMLCanvasElement
   // data.timestamp - Frame timestamp in seconds
-  // data.duration - Video duration in seconds
   // data.dataUrl - Base64 data URL for immediate use
 };
 </script>
 
 <template>
-  <VideoPlayer
+  <VideoPlayerEditor
     :video-source="videoFile"
     :edit-mode="true"
     @thumbnail-generated="handleThumbnailGenerated"
@@ -110,7 +122,7 @@ const handleThumbnailGenerated = (data) => {
 </template>
 ```
 
-> **Note:** When `editMode` is enabled, the `VideoThumbnailEditor` component is lazy-loaded using Vue's `defineAsyncComponent`, ensuring Media Bunny is only loaded when needed.
+> **Note:** When `editMode` is enabled, the `VideoEditor` component is rendered, which integrates Media Bunny for thumbnail generation. The editor component reuses the `VideoPlayer` component as its base for consistent video playback.
 
 ## Key Features
 
@@ -133,11 +145,12 @@ Media Bunny provides powerful video processing capabilities and is **lazy-loaded
 - **Efficient Canvas Rendering**: High-quality output with minimal overhead
 - **Automatic Decoding**: Handles video decoding automatically
 
-The lazy-loading architecture ensures that:
+The component architecture ensures that:
 
-- The base VideoPlayer remains lightweight (~2KB)
-- Media Bunny (~200KB+) only loads when thumbnail extraction is needed
-- Users who just want to watch videos don't pay the bundle size cost
+- The base VideoPlayer remains lightweight and focused on playback
+- VideoEditor only renders when edit mode is enabled
+- Media Bunny integration is isolated to the VideoEditor component
+- Users who just want to watch videos get a clean, streamlined experience
 
 ## Production
 
