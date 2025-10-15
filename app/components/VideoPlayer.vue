@@ -43,12 +43,6 @@ const initializeVideo = async () => {
 
 // Watch for video source changes
 watch(() => props.videoSource, initializeVideo, { immediate: true });
-
-// Expose videoRef and currentTime for parent components that need it
-defineExpose({
-  videoRef,
-  currentTime,
-});
 </script>
 
 <template>
@@ -60,6 +54,11 @@ defineExpose({
         controls
         preload="metadata"
         @loadedmetadata="onVideoMetadataLoaded"
+      />
+      <LazyVideoEditor
+        v-if="editMode"
+        :video-element="videoRef"
+        @thumbnail-generated="emit('thumbnail-generated', $event)"
       />
     </div>
   </div>

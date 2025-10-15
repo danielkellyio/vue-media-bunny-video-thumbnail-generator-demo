@@ -16,7 +16,7 @@ export interface ThumbnailGeneratedData {
 }
 
 export interface UseVideoThumbnailOptions {
-  videoElement: Ref<HTMLVideoElement | undefined>;
+  videoElement: Ref<HTMLVideoElement | undefined | null>;
 }
 
 export interface UseVideoThumbnailReturn {
@@ -31,18 +31,19 @@ export interface UseVideoThumbnailReturn {
 // VideoPlayer component types
 export interface VideoPlayerProps {
   videoSource: VideoSource;
+  editMode?: boolean;
 }
 
 export interface VideoPlayerEmits {
   (e: "metadata-loaded", data: VideoMetadata): void;
+  (e: "thumbnail-generated", data: ThumbnailGeneratedData): void;
 }
 
 // VideoEditor component types
 export interface VideoEditorProps {
-  videoSource: VideoSource;
+  videoElement: HTMLVideoElement | undefined | null;
 }
 
 export interface VideoEditorEmits {
   (e: "thumbnail-generated", data: ThumbnailGeneratedData): void;
-  (e: "metadata-loaded", data: VideoMetadata): void;
 }

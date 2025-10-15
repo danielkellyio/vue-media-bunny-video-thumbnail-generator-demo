@@ -100,8 +100,11 @@ export function useVideoThumbnail(
           throw new Error("Failed to get canvas context");
         }
 
+        // Set the canvas dimensions to the video dimensions
         canvas.width = videoWidth.value;
         canvas.height = videoHeight.value;
+
+        // Draw the thumbnail to the canvas
         ctx.drawImage(result.canvas, 0, 0);
 
         // Return the thumbnail data
@@ -111,11 +114,7 @@ export function useVideoThumbnail(
           dataUrl: canvas.toDataURL("image/png"),
         };
       } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "Error generating thumbnail";
-        error.value = errorMessage;
-        console.error("Error generating thumbnail:", err);
-        return null;
+        throw new Error("Error generating thumbnail", { cause: err });
       } finally {
         isProcessing.value = false;
       }
