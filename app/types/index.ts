@@ -16,11 +16,16 @@ export interface ThumbnailGeneratedData {
 }
 
 export interface UseVideoThumbnailOptions {
-  videoSource: Ref<VideoSource | null | undefined>;
-  currentTime: Ref<number>;
-  videoWidth: Ref<number>;
-  videoHeight: Ref<number>;
-  maxThumbnailWidth?: number;
+  videoElement: Ref<HTMLVideoElement | undefined>;
+}
+
+export interface UseVideoThumbnailReturn {
+  isProcessing: Ref<boolean>;
+  isReady: Ref<boolean>;
+  error: Ref<string | null>;
+  videoTrack: Ref<any>;
+  sink: Ref<any>;
+  generateThumbnail: () => Promise<ThumbnailGeneratedData | null>;
 }
 
 // VideoPlayer component types
@@ -35,17 +40,9 @@ export interface VideoPlayerEmits {
 // VideoEditor component types
 export interface VideoEditorProps {
   videoSource: VideoSource;
-  maxThumbnailWidth?: number;
 }
 
 export interface VideoEditorEmits {
   (e: "thumbnail-generated", data: ThumbnailGeneratedData): void;
   (e: "metadata-loaded", data: VideoMetadata): void;
 }
-
-// VideoPlayerEditor component types
-export type VideoPlayerEditorProps = VideoPlayerProps &
-  VideoEditorProps & {
-    editMode?: boolean;
-  };
-export type VideoPlayerEditorEmits = VideoPlayerEmits & VideoEditorEmits;

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import VideoPlayerEditor from "./components/VideoPlayerEditor.vue";
+import VideoPlayer from "./components/VideoPlayer.vue";
+import VideoEditor from "./components/VideoEditor.vue";
 import type { ThumbnailGeneratedData } from "./types";
 
 const selectedFile = ref<File | null>(null);
@@ -91,10 +92,15 @@ const log = console.log;
 
           <!-- Video Player Section -->
           <div v-if="selectedFile" class="py-6">
-            <VideoPlayerEditor
+            <VideoEditor
+              v-if="editMode"
               :video-source="selectedFile"
-              :edit-mode="editMode"
               @thumbnail-generated="handleThumbnailGenerated"
+              @metadata-loaded="log"
+            />
+            <VideoPlayer
+              v-else
+              :video-source="selectedFile"
               @metadata-loaded="log"
             />
           </div>

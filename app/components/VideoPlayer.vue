@@ -44,8 +44,9 @@ const initializeVideo = async () => {
 // Watch for video source changes
 watch(() => props.videoSource, initializeVideo, { immediate: true });
 
-// Expose currentTime for parent components that need it
+// Expose videoRef and currentTime for parent components that need it
 defineExpose({
+  videoRef,
   currentTime,
 });
 </script>
