@@ -2,7 +2,11 @@
 import { ref, computed, toRef } from "vue";
 import VideoPlayer from "./VideoPlayer.vue";
 import { useVideoThumbnail } from "../composables/useVideoThumbnail";
-import type { VideoEditorProps, VideoEditorEmits, VideoMetadata } from "../types";
+import type {
+  VideoEditorProps,
+  VideoEditorEmits,
+  VideoMetadata,
+} from "../types";
 
 const props = withDefaults(defineProps<VideoEditorProps>(), {
   maxThumbnailWidth: 1920,
@@ -11,7 +15,8 @@ const props = withDefaults(defineProps<VideoEditorProps>(), {
 const emit = defineEmits<VideoEditorEmits>();
 
 // Reactive state
-const videoPlayerRef = useTemplateRef<InstanceType<typeof VideoPlayer>>("videoPlayerRef");
+const videoPlayerRef =
+  useTemplateRef<InstanceType<typeof VideoPlayer>>("videoPlayerRef");
 const videoWidth = ref(0);
 const videoHeight = ref(0);
 
@@ -22,6 +27,7 @@ const currentTime = computed(() => videoPlayerRef.value?.currentTime ?? 0);
 const handleMetadataLoaded = (data: VideoMetadata) => {
   videoWidth.value = data.videoWidth;
   videoHeight.value = data.videoHeight;
+  emit("metadata-loaded", data);
 };
 
 // Use the video thumbnail composable
@@ -36,7 +42,7 @@ const { isProcessing, sink, generateThumbnail } = useVideoThumbnail({
 // Handle thumbnail generation and emit event
 const handleGenerateThumbnail = async () => {
   const result = await generateThumbnail();
-  
+
   if (result) {
     emit("thumbnail-generated", result);
   }
@@ -67,4 +73,3 @@ const handleGenerateThumbnail = async () => {
     </div>
   </div>
 </template>
-

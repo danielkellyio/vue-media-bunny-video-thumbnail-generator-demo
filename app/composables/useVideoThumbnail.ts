@@ -1,6 +1,9 @@
 import { ref, watch, computed } from "vue";
 import { Input, ALL_FORMATS, BlobSource, CanvasSink } from "mediabunny";
-import type { UseVideoThumbnailOptions, ThumbnailGeneratedData } from "../types";
+import type {
+  UseVideoThumbnailOptions,
+  ThumbnailGeneratedData,
+} from "../types";
 
 export function useVideoThumbnail(options: UseVideoThumbnailOptions) {
   const {
@@ -15,7 +18,7 @@ export function useVideoThumbnail(options: UseVideoThumbnailOptions) {
   const isProcessing = ref(false);
   const videoTrack = ref<any>(null);
   const sink = ref<CanvasSink | null>(null);
-  const canvas = document.createElement('canvas');
+  const canvas = document.createElement("canvas");
 
   // Computed thumbnail dimensions based on video aspect ratio
   const thumbnailWidth = computed(() => {
@@ -85,43 +88,42 @@ export function useVideoThumbnail(options: UseVideoThumbnailOptions) {
   };
 
   // Generate thumbnail at current time
-  const generateThumbnail = async (): Promise<ThumbnailGeneratedData | null> => {
-    if (!sink.value) {
-      throw new Error(
-        "Attempting to generate thumbnail with sink not found"
-      );
-    }
-
-    try {
-      isProcessing.value = true;
-
-      const result = await sink.value.getCanvas(currentTime.value);
-
-      if (!result) {
-        throw new Error("Failed to generate thumbnail");
+  const generateThumbnail =
+    async (): Promise<ThumbnailGeneratedData | null> => {
+      if (!sink.value) {
+        throw new Error("Attempting to generate thumbnail with sink not found");
       }
 
-      // Draw to the internal canvas element
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return null;
+      try {
+        isProcessing.value = true;
 
-      canvas.width = thumbnailWidth.value;
-      canvas.height = thumbnailHeight.value;
-      ctx.drawImage(result.canvas, 0, 0);
+        const result = await sink.value.getCanvas(currentTime.value);
 
-      // Return the thumbnail data
-      return {
-        canvas,
-        timestamp: result.timestamp,
-        dataUrl: canvas.toDataURL("image/png"),
-      };
-    } catch (error) {
-      console.error("Error generating thumbnail:", error);
-      return null;
-    } finally {
-      isProcessing.value = false;
-    }
-  };
+        if (!result) {
+          throw new Error("Failed to generate thumbnail");
+        }
+
+        // Draw to the internal canvas element
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return null;
+
+        canvas.width = thumbnailWidth.value;
+        canvas.height = thumbnailHeight.value;
+        ctx.drawImage(result.canvas, 0, 0);
+
+        // Return the thumbnail data
+        return {
+          canvas,
+          timestamp: result.timestamp,
+          dataUrl: canvas.toDataURL("image/png"),
+        };
+      } catch (error) {
+        console.error("Error generating thumbnail:", error);
+        return null;
+      } finally {
+        isProcessing.value = false;
+      }
+    };
 
   // Watch for video dimensions changes to re-initialize sink
   watch([videoWidth, videoHeight], () => {
@@ -133,9 +135,13 @@ export function useVideoThumbnail(options: UseVideoThumbnailOptions) {
   });
 
   // Initialize on video source change
-  watch(videoSource, () => {
-    initializeMediaBunny();
-  }, { immediate: true });
+  watch(
+    videoSource,
+    () => {
+      initializeMediaBunny();
+    },
+    { immediate: true }
+  );
 
   return {
     isProcessing,
@@ -146,4 +152,3 @@ export function useVideoThumbnail(options: UseVideoThumbnailOptions) {
     generateThumbnail,
   };
 }
-

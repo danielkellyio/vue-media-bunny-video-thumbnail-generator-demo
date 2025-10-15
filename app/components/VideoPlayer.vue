@@ -42,11 +42,7 @@ const initializeVideo = async () => {
 };
 
 // Watch for video source changes
-watch(
-  () => props.videoSource,
-  initializeVideo,
-  { immediate: true }
-);
+watch(() => props.videoSource, initializeVideo, { immediate: true });
 
 // Expose currentTime for parent components that need it
 defineExpose({

@@ -1,28 +1,23 @@
 <script setup lang="ts">
-import VideoPlayer from "./VideoPlayer.vue";
-import VideoEditor from "./VideoEditor.vue";
-import type { VideoPlayerEditorProps, VideoPlayerEditorEmits, ThumbnailGeneratedData } from "../types";
+import { defineAsyncComponent } from "vue";
+
+const VideoEditor = defineAsyncComponent(() => import("./VideoEditor.vue"));
+const VideoPlayer = defineAsyncComponent(() => import("./VideoPlayer.vue"));
+import type { VideoPlayerEditorProps, VideoPlayerEditorEmits } from "../types";
 
 const props = withDefaults(defineProps<VideoPlayerEditorProps>(), {
   editMode: false,
 });
 
 const emit = defineEmits<VideoPlayerEditorEmits>();
-
-// Handle thumbnail generation from editor component
-const handleThumbnailGenerated = (data: ThumbnailGeneratedData) => {
-  emit("thumbnail-generated", data);
-};
 </script>
 
 <template>
-  <VideoEditor
-    v-if="editMode"
-    :video-source="videoSource"
-    @thumbnail-generated="handleThumbnailGenerated"
-  />
-  <VideoPlayer
-    v-else
-    :video-source="videoSource"
+  <component
+    :is="editMode ? VideoEditor : VideoPlayer"
+    v-bind="props"
+    ref="videoPlayerEditorRef"
+    @thumbnail-generated="emit('thumbnail-generated', $event)"
+    @metadata-loaded="emit('metadata-loaded', $event)"
   />
 </template>

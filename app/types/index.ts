@@ -40,15 +40,12 @@ export interface VideoEditorProps {
 
 export interface VideoEditorEmits {
   (e: "thumbnail-generated", data: ThumbnailGeneratedData): void;
+  (e: "metadata-loaded", data: VideoMetadata): void;
 }
 
 // VideoPlayerEditor component types
-export interface VideoPlayerEditorProps {
-  videoSource: VideoSource;
-  editMode?: boolean;
-}
-
-export interface VideoPlayerEditorEmits {
-  (e: "thumbnail-generated", data: ThumbnailGeneratedData): void;
-}
-
+export type VideoPlayerEditorProps = VideoPlayerProps &
+  VideoEditorProps & {
+    editMode?: boolean;
+  };
+export type VideoPlayerEditorEmits = VideoPlayerEmits & VideoEditorEmits;
