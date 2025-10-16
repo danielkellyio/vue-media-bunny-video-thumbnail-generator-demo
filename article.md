@@ -183,6 +183,8 @@ Let's start simple, with support for selecting and playing a video file.
 
 Test it out—you now have a working video player!
 
+![Video Player Demo](./images/simple-player-demo.gif)
+
 ### Step 2: Extract into a Reusable VideoPlayer Component
 
 As developers, we want reusable components. Let's extract the video player logic into a reusable component.
